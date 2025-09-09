@@ -10,7 +10,8 @@ const firebaseConfig = {
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = getApps.length > 0 ? getApp() : initializeApp(firebaseConfig);
+// Fix: getApps is a function, not an array
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 const db = getFirestore(app);
 

@@ -57,9 +57,10 @@ export const RecordAnswer = ({
   });
 
   const [browserSupportsSpeech, setBrowserSupportsSpeech] = useState(true);
+  const [microphonePermission, setMicrophonePermission] = useState<'granted' | 'denied' | 'prompt' | null>(null);
 
   useEffect(() => {
-    // Check if browser supports speech recognition (with proper type assertions)
+    // Check if browser supports speech recognition
     const SpeechRecognition =
       (window as any).SpeechRecognition ||
       (window as any).webkitSpeechRecognition ||
@@ -67,7 +68,6 @@ export const RecordAnswer = ({
       (window as any).msSpeechRecognition;
 
     const supportsSpeech = !!SpeechRecognition;
-
     setBrowserSupportsSpeech(supportsSpeech);
 
     if (!supportsSpeech) {
@@ -75,24 +75,26 @@ export const RecordAnswer = ({
         description: "Your browser doesn't support speech recognition. Try using Chrome, Edge, or Safari.",
       });
     }
+  }, []);
 
-    // Request microphone permissions on component mount
-    const requestMicrophonePermission = async () => {
+  // Check microphone permission status
+  useEffect(() => {
+    const checkMicrophonePermission = async () => {
       try {
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (navigator.permissions) {
+          const permission = await navigator.permissions.query({ name: 'microphone' as any });
+          setMicrophonePermission(permission.state);
+          
+          permission.onchange = () => {
+            setMicrophonePermission(permission.state);
+          };
         }
       } catch (err) {
-        console.error("Microphone permission error:", err);
-        toast.error("Microphone Access Required", {
-          description: "Please allow microphone access in your browser settings to use this feature.",
-        });
+        console.log("Microphone permission check not supported in this browser");
       }
     };
 
-    if (supportsSpeech) {
-      requestMicrophonePermission();
-    }
+    checkMicrophonePermission();
   }, []);
 
   // Log any errors with speech recognition
@@ -118,23 +120,28 @@ export const RecordAnswer = ({
     if (isRecording) {
       stopSpeechToText();
 
-      if (userAnswer?.length < 30) {
-        toast.error("Error", {
-          description: "Your answer should be more than 30 characters",
+      // Add a small delay to ensure all speech is captured
+      setTimeout(() => {
+        if (userAnswer?.length < 30) {
+          toast.error("Error", {
+            description: "Your answer should be more than 30 characters",
+          });
+          return;
+        }
+
+        // Generate AI result
+        generateResult(
+          question.question,
+          question.answer,
+          userAnswer
+        ).then(aiResult => {
+          setAiResult(aiResult);
         });
-
-        return;
-      }
-
-      //   ai result
-      const aiResult = await generateResult(
-        question.question,
-        question.answer,
-        userAnswer
-      );
-
-      setAiResult(aiResult);
+      }, 500);
     } else {
+      // Clear previous results when starting new recording
+      setUserAnswer("");
+      setAiResult(null);
       startSpeechToText();
     }
   };
@@ -187,9 +194,20 @@ export const RecordAnswer = ({
   };
 
   const recordNewAnswer = () => {
+    if (!browserSupportsSpeech || microphonePermission === 'denied') {
+      toast.error("Microphone Not Available", {
+        description: "Please ensure your browser supports speech recognition and microphone permissions are granted.",
+      });
+      return;
+    }
+    
     setUserAnswer("");
+    setAiResult(null);
     stopSpeechToText();
-    startSpeechToText();
+    // Small delay to ensure stopping before starting
+    setTimeout(() => {
+      startSpeechToText();
+    }, 100);
   };
 
   const saveUserAnswer = async () => {
@@ -295,7 +313,14 @@ export const RecordAnswer = ({
         </div>
       )}
 
-      <div className="flex itece justify-center gap-3">
+      {microphonePermission === 'denied' && browserSupportsSpeech && (
+        <div className="w-full p-3 bg-yellow-100 border border-yellow-300 rounded-md text-yellow-700 text-sm">
+          <p className="font-medium">Microphone Permission Required</p>
+          <p>Please allow microphone access in your browser settings to use this feature.</p>
+        </div>
+      )}
+
+      <div className="flex items-center justify-center gap-3">
         <TooltipButton
           content={isWebCam ? "Turn Off" : "Turn On"}
           icon={
@@ -309,7 +334,15 @@ export const RecordAnswer = ({
         />
 
         <TooltipButton
-          content={isRecording ? "Stop Recording" : "Start Recording"}
+          content={
+            !browserSupportsSpeech 
+              ? "Browser Not Supported" 
+              : microphonePermission === 'denied'
+              ? "Microphone Permission Required"
+              : isRecording 
+              ? "Stop Recording" 
+              : "Start Recording"
+          }
           icon={
             isRecording ? (
               <CircleStop className="min-w-5 min-h-5" />
@@ -318,7 +351,7 @@ export const RecordAnswer = ({
             )
           }
           onClick={recordUserAnswer}
-          disabled={!browserSupportsSpeech}
+          disabled={!browserSupportsSpeech || microphonePermission === 'denied'}
         />
 
         <TooltipButton

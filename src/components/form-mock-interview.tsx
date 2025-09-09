@@ -37,7 +37,8 @@ const formSchema = z.object({
     description: z.string().min(10, "Description is required"),
     experience: z
         .number()
-        .min(0, "Experience cannot be empty or negative"),
+        .min(0, "Experience cannot be negative")
+        .int("Experience must be a whole number"),
     techStack: z.string().min(1, "Tech stack must be at least a character"),
 });
 
@@ -49,9 +50,10 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
         defaultValues: {
             position: initialData?.position || "",
             description: initialData?.description || "",
-            experience: initialData?.experience || 0,
+            experience: initialData?.experience ?? 0,
             techStack: initialData?.techStack || "",
         },
+        mode: "onChange",
     });
 
     const { isValid, isSubmitting } = form.formState;
@@ -74,7 +76,7 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
         let cleanText = responseText.trim();
 
         // Step 2: Remove any occurrences of "json" or code block symbols (``` or `)
-        cleanText = cleanText.replace(/(json|```|`)/g, "");
+        cleanText = cleanText.replace(/(json|```|`)/gi, "");
 
         // Step 3: Extract a JSON array by capturing text between square brackets
         const jsonArrayMatch = cleanText.match(/\[.*\]/s);
@@ -110,49 +112,64 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
         The questions should assess skills in ${data?.techStack} development and best practices, problem-solving, and experience handling complex requirements. Please format the output strictly as an array of JSON objects without any additional labels, code blocks, or explanations. Return only the JSON array with questions and answers.
         `;
 
-        const aiResult = await chatSession.sendMessage(prompt);
-        const cleanedResponse = cleanAiResponse(aiResult.response.text());
-
-        return cleanedResponse;
+        try {
+            const aiResult = await chatSession.sendMessage(prompt);
+            const cleanedResponse = cleanAiResponse(aiResult.response.text());
+            return cleanedResponse;
+        } catch (error) {
+            console.error("AI Response Error:", error);
+            toast.error("AI Generation Error", {
+                description: "Failed to generate interview questions. Please try again.",
+            });
+            throw error;
+        }
     };
 
     const onSubmit: SubmitHandler<FormData> = async (data) => {
+        // First check if form is valid
+        const isValid = await form.trigger();
+        if (!isValid) {
+            toast.error("Validation Error", {
+                description: "Please fix the errors in the form before submitting.",
+            });
+            return;
+        }
+
         try {
             setLoading(true);
 
             if (initialData) {
                 // update
-                if (isValid) {
-                    const aiResult = await generateAiResponse(data);
+                const aiResult = await generateAiResponse(data);
 
-                    await updateDoc(doc(db, "interviews", initialData?.id), {
-                        questions: aiResult,
-                        ...data,
-                        updatedAt: serverTimestamp(),
-                    }).catch((error) => console.log(error));
-                    toast(toastMessage.title, { description: toastMessage.description });
-                }
+                await updateDoc(doc(db, "interviews", initialData?.id), {
+                    questions: aiResult,
+                    ...data,
+                    updatedAt: serverTimestamp(),
+                }).catch((error) => {
+                    console.log(error);
+                    throw error;
+                });
+                toast(toastMessage.title, { description: toastMessage.description });
             } else {
                 // create a new mock interview
-                if (isValid) {
-                    const aiResult = await generateAiResponse(data);
+                const aiResult = await generateAiResponse(data);
 
-                    await addDoc(collection(db, "interviews"), {
-                        ...data,
-                        userId,
-                        questions: aiResult,
-                        createdAt: serverTimestamp(),
-                    });
+                await addDoc(collection(db, "interviews"), {
+                    ...data,
+                    userId,
+                    questions: aiResult,
+                    createdAt: serverTimestamp(),
+                });
 
-                    toast(toastMessage.title, { description: toastMessage.description });
-                }
+                toast(toastMessage.title, { description: toastMessage.description });
             }
 
             navigate("/generate", { replace: true });
         } catch (error) {
-            console.log(error);
-            toast.error("Error..", {
-                description: `Something went wrong. Please try again later`,
+            console.log("Submission Error:", error);
+            toast.error("Error", {
+                description: `Failed to ${initialData ? "update" : "create"} mock interview. Please try again.`,
             });
         } finally {
             setLoading(false);
@@ -263,6 +280,7 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
                                 placeholder="eg:- 5 Years"
                                 {...field}
                                 value={field.value || ""}
+                                onChange={(e) => field.onChange(Number(e.target.value))}
                             />
                         </div>
                     )}
@@ -294,7 +312,15 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
 
                 <div className="w-full flex items-center justify-end gap-6">
                     <Button
-                        type="reset"
+                        type="button"
+                        onClick={() => {
+                            form.reset({
+                                position: initialData?.position || "",
+                                description: initialData?.description || "",
+                                experience: initialData?.experience || 0,
+                                techStack: initialData?.techStack || "",
+                            });
+                        }}
                         size={"sm"}
                         variant={"outline"}
                         disabled={isSubmitting || loading}
@@ -304,7 +330,7 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
                     <Button
                         type="submit"
                         size={"sm"}
-                        disabled={isSubmitting || !isValid || loading}
+                        disabled={isSubmitting || loading}
                     >
                         {loading ? (
                             <Loader className="text-gray-50 animate-spin" />

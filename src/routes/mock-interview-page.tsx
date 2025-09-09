@@ -21,22 +21,30 @@ export const MockInterviewPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!interviewId) {
+      navigate("/generate", { replace: true });
+      return;
+    }
+
     setIsLoading(true);
     const fetchInterview = async () => {
-      if (interviewId) {
-        try {
-          const interviewDoc = await getDoc(doc(db, "interviews", interviewId));
-          if (interviewDoc.exists()) {
-            setInterview({
-              id: interviewDoc.id,
-              ...interviewDoc.data(),
-            } as Interview);
-          }
-        } catch (error) {
-          console.log(error);
-        } finally {
-          setIsLoading(false);
+      try {
+        const interviewDoc = await getDoc(doc(db, "interviews", interviewId));
+        if (interviewDoc.exists()) {
+          setInterview({
+            id: interviewDoc.id,
+            ...interviewDoc.data(),
+          } as Interview);
+        } else {
+          // If document doesn't exist, redirect to generate page
+          navigate("/generate", { replace: true });
         }
+      } catch (error) {
+        console.log(error);
+        // On error, redirect to generate page
+        navigate("/generate", { replace: true });
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -47,12 +55,9 @@ export const MockInterviewPage = () => {
     return <LoaderPage className="w-full h-[70vh]" />;
   }
 
-  if (!interviewId) {
-    navigate("/generate", { replace: true });
-  }
-
-  if (!interview) {
-    navigate("/generate", { replace: true });
+  // We've already handled navigation in the useEffect, but double-check
+  if (!interviewId || !interview) {
+    return null; // Will navigate in useEffect
   }
 
   return (
