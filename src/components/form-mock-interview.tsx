@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FormProvider, useForm } from "react-hook-form";
+import { useForm, type SubmitHandler, Controller } from "react-hook-form";
 
 import type { Interview } from "@/types";
 
@@ -13,13 +13,6 @@ import { Headings } from "./headings";
 import { Button } from "./ui/button";
 import { Loader, Trash2 } from "lucide-react";
 import { Separator } from "./ui/separator";
-import {
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "./ui/form";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { chatSession } from "@/scripts";
@@ -42,7 +35,7 @@ const formSchema = z.object({
         .min(1, "Position is required")
         .max(100, "Position must be 100 characters or less"),
     description: z.string().min(10, "Description is required"),
-    experience: z.coerce
+    experience: z
         .number()
         .min(0, "Experience cannot be empty or negative"),
     techStack: z.string().min(1, "Tech stack must be at least a character"),
@@ -53,7 +46,12 @@ type FormData = z.infer<typeof formSchema>;
 export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
     const form = useForm<FormData>({
         resolver: zodResolver(formSchema),
-        defaultValues: initialData || {},
+        defaultValues: {
+            position: initialData?.position || "",
+            description: initialData?.description || "",
+            experience: initialData?.experience || 0,
+            techStack: initialData?.techStack || "",
+        },
     });
 
     const { isValid, isSubmitting } = form.formState;
@@ -118,7 +116,7 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
         return cleanedResponse;
     };
 
-    const onSubmit = async (data: FormData) => {
+    const onSubmit: SubmitHandler<FormData> = async (data) => {
         try {
             setLoading(true);
 
@@ -193,123 +191,129 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
 
             <div className="my-6"></div>
 
-            <FormProvider {...form}>
-                <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    className="w-full p-8 rounded-lg flex-col flex items-start justify-start gap-6 shadow-md "
-                >
-                    <FormField
-                        control={form.control}
-                        name="position"
-                        render={({ field }) => (
-                            <FormItem className="w-full space-y-4">
-                                <div className="w-full flex items-center justify-between">
-                                    <FormLabel>Job Role / Job Position</FormLabel>
-                                    <FormMessage className="text-sm" />
-                                </div>
-                                <FormControl>
-                                    <Input
-                                        className="h-12"
-                                        disabled={loading}
-                                        placeholder="eg:- Full Stack Developer"
-                                        {...field}
-                                        value={field.value || ""}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
+            <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="w-full p-8 rounded-lg flex-col flex items-start justify-start gap-6 shadow-md "
+            >
+                <Controller
+                    control={form.control}
+                    name="position"
+                    render={({ field, fieldState }) => (
+                        <div className="w-full space-y-4">
+                            <div className="w-full flex items-center justify-between">
+                                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    Job Role / Job Position
+                                </label>
+                                {fieldState.error && (
+                                    <span className="text-sm text-red-500">{fieldState.error.message}</span>
+                                )}
+                            </div>
+                            <Input
+                                className="h-12"
+                                disabled={loading}
+                                placeholder="eg:- Full Stack Developer"
+                                {...field}
+                                value={field.value || ""}
+                            />
+                        </div>
+                    )}
+                />
 
-                    <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                            <FormItem className="w-full space-y-4">
-                                <div className="w-full flex items-center justify-between">
-                                    <FormLabel>Job Description</FormLabel>
-                                    <FormMessage className="text-sm" />
-                                </div>
-                                <FormControl>
-                                    <Textarea
-                                        className="h-12"
-                                        disabled={loading}
-                                        placeholder="eg:- describle your job role"
-                                        {...field}
-                                        value={field.value || ""}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
+                <Controller
+                    control={form.control}
+                    name="description"
+                    render={({ field, fieldState }) => (
+                        <div className="w-full space-y-4">
+                            <div className="w-full flex items-center justify-between">
+                                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    Job Description
+                                </label>
+                                {fieldState.error && (
+                                    <span className="text-sm text-red-500">{fieldState.error.message}</span>
+                                )}
+                            </div>
+                            <Textarea
+                                className="h-12"
+                                disabled={loading}
+                                placeholder="eg:- describle your job role"
+                                {...field}
+                                value={field.value || ""}
+                            />
+                        </div>
+                    )}
+                />
 
-                    <FormField
-                        control={form.control}
-                        name="experience"
-                        render={({ field }) => (
-                            <FormItem className="w-full space-y-4">
-                                <div className="w-full flex items-center justify-between">
-                                    <FormLabel>Years of Experience</FormLabel>
-                                    <FormMessage className="text-sm" />
-                                </div>
-                                <FormControl>
-                                    <Input
-                                        type="number"
-                                        className="h-12"
-                                        disabled={loading}
-                                        placeholder="eg:- 5 Years"
-                                        {...field}
-                                        value={field.value || ""}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
+                <Controller
+                    control={form.control}
+                    name="experience"
+                    render={({ field, fieldState }) => (
+                        <div className="w-full space-y-4">
+                            <div className="w-full flex items-center justify-between">
+                                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    Years of Experience
+                                </label>
+                                {fieldState.error && (
+                                    <span className="text-sm text-red-500">{fieldState.error.message}</span>
+                                )}
+                            </div>
+                            <Input
+                                type="number"
+                                className="h-12"
+                                disabled={loading}
+                                placeholder="eg:- 5 Years"
+                                {...field}
+                                value={field.value || ""}
+                            />
+                        </div>
+                    )}
+                />
 
-                    <FormField
-                        control={form.control}
-                        name="techStack"
-                        render={({ field }) => (
-                            <FormItem className="w-full space-y-4">
-                                <div className="w-full flex items-center justify-between">
-                                    <FormLabel>Tech Stacks</FormLabel>
-                                    <FormMessage className="text-sm" />
-                                </div>
-                                <FormControl>
-                                    <Textarea
-                                        className="h-12"
-                                        disabled={loading}
-                                        placeholder="eg:- React, Typescript..."
-                                        {...field}
-                                        value={field.value || ""}
-                                    />
-                                </FormControl>
-                            </FormItem>
-                        )}
-                    />
+                <Controller
+                    control={form.control}
+                    name="techStack"
+                    render={({ field, fieldState }) => (
+                        <div className="w-full space-y-4">
+                            <div className="w-full flex items-center justify-between">
+                                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    Tech Stacks
+                                </label>
+                                {fieldState.error && (
+                                    <span className="text-sm text-red-500">{fieldState.error.message}</span>
+                                )}
+                            </div>
+                            <Textarea
+                                className="h-12"
+                                disabled={loading}
+                                placeholder="eg:- React, Typescript..."
+                                {...field}
+                                value={field.value || ""}
+                            />
+                        </div>
+                    )}
+                />
 
-                    <div className="w-full flex items-center justify-end gap-6">
-                        <Button
-                            type="reset"
-                            size={"sm"}
-                            variant={"outline"}
-                            disabled={isSubmitting || loading}
-                        >
-                            Reset
-                        </Button>
-                        <Button
-                            type="submit"
-                            size={"sm"}
-                            disabled={isSubmitting || !isValid || loading}
-                        >
-                            {loading ? (
-                                <Loader className="text-gray-50 animate-spin" />
-                            ) : (
-                                actions
-                            )}
-                        </Button>
-                    </div>
-                </form>
-            </FormProvider>
+                <div className="w-full flex items-center justify-end gap-6">
+                    <Button
+                        type="reset"
+                        size={"sm"}
+                        variant={"outline"}
+                        disabled={isSubmitting || loading}
+                    >
+                        Reset
+                    </Button>
+                    <Button
+                        type="submit"
+                        size={"sm"}
+                        disabled={isSubmitting || !isValid || loading}
+                    >
+                        {loading ? (
+                            <Loader className="text-gray-50 animate-spin" />
+                        ) : (
+                            actions
+                        )}
+                    </Button>
+                </div>
+            </form>
         </div>
     );
 };
