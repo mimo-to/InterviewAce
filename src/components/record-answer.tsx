@@ -45,6 +45,7 @@ export const RecordAnswer = ({
   setIsWebCam,
 }: RecordAnswerProps) => {
   const {
+    error,
     interimResult,
     isRecording,
     results,
@@ -54,6 +55,55 @@ export const RecordAnswer = ({
     continuous: true,
     useLegacyResults: false,
   });
+
+  const [browserSupportsSpeech, setBrowserSupportsSpeech] = useState(true);
+
+  useEffect(() => {
+    // Check if browser supports speech recognition (with proper type assertions)
+    const SpeechRecognition =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition ||
+      (window as any).mozSpeechRecognition ||
+      (window as any).msSpeechRecognition;
+
+    const supportsSpeech = !!SpeechRecognition;
+
+    setBrowserSupportsSpeech(supportsSpeech);
+
+    if (!supportsSpeech) {
+      toast.error("Browser Not Supported", {
+        description: "Your browser doesn't support speech recognition. Try using Chrome, Edge, or Safari.",
+      });
+    }
+
+    // Request microphone permissions on component mount
+    const requestMicrophonePermission = async () => {
+      try {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          await navigator.mediaDevices.getUserMedia({ audio: true });
+        }
+      } catch (err) {
+        console.error("Microphone permission error:", err);
+        toast.error("Microphone Access Required", {
+          description: "Please allow microphone access in your browser settings to use this feature.",
+        });
+      }
+    };
+
+    if (supportsSpeech) {
+      requestMicrophonePermission();
+    }
+  }, []);
+
+  // Log any errors with speech recognition
+  useEffect(() => {
+    if (error) {
+      console.error("Speech recognition error:", error);
+      toast.error("Microphone Error", {
+        description: error || "Failed to access microphone. Please check your browser settings and ensure you've granted microphone permissions.",
+      });
+    }
+  }, [error]);
 
   const [userAnswer, setUserAnswer] = useState("");
   const [isAiGenerating, setIsAiGenerating] = useState(false);
@@ -229,6 +279,22 @@ export const RecordAnswer = ({
         )}
       </div>
 
+      {/* Microphone status indicator */}
+      {!browserSupportsSpeech && (
+        <div className="w-full p-3 bg-red-100 border border-red-300 rounded-md text-red-700 text-sm">
+          <p className="font-medium">Browser Not Supported</p>
+          <p>Your browser doesn't support speech recognition. Please try Chrome, Edge, or Safari.</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="w-full p-3 bg-red-100 border border-red-300 rounded-md text-red-700 text-sm">
+          <p className="font-medium">Microphone Access Error</p>
+          <p>{error}</p>
+          <p className="mt-1">Please check your browser settings and ensure you've granted microphone permissions.</p>
+        </div>
+      )}
+
       <div className="flex itece justify-center gap-3">
         <TooltipButton
           content={isWebCam ? "Turn Off" : "Turn On"}
@@ -252,12 +318,14 @@ export const RecordAnswer = ({
             )
           }
           onClick={recordUserAnswer}
+          disabled={!browserSupportsSpeech}
         />
 
         <TooltipButton
           content="Record Again"
           icon={<RefreshCw className="min-w-5 min-h-5" />}
           onClick={recordNewAnswer}
+          disabled={!browserSupportsSpeech}
         />
 
         <TooltipButton
@@ -270,7 +338,7 @@ export const RecordAnswer = ({
             )
           }
           onClick={() => setOpen(!open)}
-          disbaled={!aiResult}
+          disabled={!aiResult}
         />
       </div>
 
