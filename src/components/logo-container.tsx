@@ -1,12 +1,17 @@
 import { Link } from "react-router-dom";
 
+/**
+ * LogoContainer displays the site logo in a compact, visually balanced way.
+ * The logo is sized to fit naturally in the header, like a typical website logo.
+ */
 export const LogoContainer = () => {
     return (
-        <Link to={"/"}>
+        <Link to="/" className="flex items-center">
             <img
-                src="/assets/svg/logo.svg"
-                alt=""
-                className="min-w-10 min-h-10 object-contain"
+                src="/assets/svg/colored-logo.svg"
+                alt="InterviewAce AI Logo"
+                className="h-8 w-8 object-contain" // 32x32px, fits well in most headers
+                style={{ minWidth: 32, minHeight: 32, maxWidth: 40, maxHeight: 40 }}
             />
         </Link>
     );

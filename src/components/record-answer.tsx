@@ -84,7 +84,7 @@ export const RecordAnswer = ({
         if (navigator.permissions) {
           const permission = await navigator.permissions.query({ name: 'microphone' as any });
           setMicrophonePermission(permission.state);
-          
+
           permission.onchange = () => {
             setMicrophonePermission(permission.state);
           };
@@ -200,7 +200,7 @@ export const RecordAnswer = ({
       });
       return;
     }
-    
+
     setUserAnswer("");
     setAiResult(null);
     stopSpeechToText();
@@ -335,13 +335,13 @@ export const RecordAnswer = ({
 
         <TooltipButton
           content={
-            !browserSupportsSpeech 
-              ? "Browser Not Supported" 
+            !browserSupportsSpeech
+              ? "Browser Not Supported"
               : microphonePermission === 'denied'
-              ? "Microphone Permission Required"
-              : isRecording 
-              ? "Stop Recording" 
-              : "Start Recording"
+                ? "Microphone Permission Required"
+                : isRecording
+                  ? "Stop Recording"
+                  : "Start Recording"
           }
           icon={
             isRecording ? (
@@ -379,7 +379,7 @@ export const RecordAnswer = ({
         <h2 className="text-lg font-semibold">Your Answer:</h2>
 
         <p className="text-sm mt-2 text-gray-700 whitespace-normal">
-          {userAnswer || "Start recording to see your ansewer here"}
+          {userAnswer || "Start recording to see your answer here"}
         </p>
 
         {interimResult && (

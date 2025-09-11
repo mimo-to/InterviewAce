@@ -56,7 +56,7 @@ export const FormMockInterview = ({ initialData }: FormMockInterviewProps) => {
         mode: "onChange",
     });
 
-    const { isValid, isSubmitting } = form.formState;
+    const { isSubmitting } = form.formState;
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const { userId } = useAuth();
