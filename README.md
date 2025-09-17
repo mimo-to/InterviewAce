@@ -215,7 +215,7 @@ We welcome contributions to InterviewAce AI! Here's how you can help:
 
 Please ensure your code follows our coding standards and includes appropriate tests.
 
-## 📝 License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
@@ -223,7 +223,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Rounak Hati** - rounakhati18@gmail.com
 
-Project Link: [https://github.com/mimo-to/interviewace-ai](https://github.com/your-username/interviewace-ai)
+Project Link: [https://github.com/mimo-to/interviewace-ai](https://github.com/mimo-to/interviewace-ai)
 
 ## 🙏 Acknowledgments
 
