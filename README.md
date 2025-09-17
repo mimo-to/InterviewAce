@@ -223,7 +223,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Rounak Hati** - rounakhati18@gmail.com
 
-Project Link: [https://github.com/your-username/interviewace-ai](https://github.com/your-username/interviewace-ai)
+Project Link: [https://github.com/mimo-to/interviewace-ai](https://github.com/your-username/interviewace-ai)
 
 ## 🙏 Acknowledgments
 
@@ -236,8 +236,3 @@ Project Link: [https://github.com/your-username/interviewace-ai](https://github.
 
 ---
 
-<div align="center">
-  
-  Made with ❤️ by [Rounak Hati](https://github.com/mimo-to)
-  
-</div>
