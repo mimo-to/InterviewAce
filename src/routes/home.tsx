@@ -56,13 +56,7 @@ const HomePage = () => {
                     <div className="absolute top-4 left-4 px-4 py-2 rounded-md bg-white/40 backdrop-blur-md">
                         AI Powered Interview &copy;
                     </div>
-                    <div className="absolute w-80 bottom-4 right-4 px-4 py-2 rounded-md bg-white/60 backdrop-blur-md">
-                        <h2 className="text-neutral-800 font-semibold">Developer</h2>
-                        <p className="text-sm text-neutral-500">
-                            Rounak Hati<br />
-                            rounakhati18@gmail.com
-                        </p>
-                    </div>
+                    
                 </div>
             </Container>
 
