@@ -219,12 +219,6 @@ Please ensure your code follows our coding standards and includes appropriate te
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📧 Contact
-
-**Rounak Hati** - rounakhati18@gmail.com
-
-Project Link: [https://github.com/mimo-to/interviewace-ai](https://github.com/mimo-to/interviewace-ai)
-
 ## 🙏 Acknowledgments
 
 - [Google Gemini API](https://ai.google/) for powering our AI features
@@ -234,5 +228,12 @@ Project Link: [https://github.com/mimo-to/interviewace-ai](https://github.com/mi
 - [Tailwind CSS](https://tailwindcss.com/) for styling
 - [Vite](https://vitejs.dev/) for the amazing development experience
 
+## 📧 Contact
+
+**Rounak Hati** - rounakhati18@gmail.com
+
+Project Link: [https://github.com/mimo-to/interviewace-ai](https://github.com/mimo-to/interviewace-ai)
+
 ---
+
 
